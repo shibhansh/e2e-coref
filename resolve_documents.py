@@ -23,8 +23,12 @@ def create_example(text):
   # This is where tokenization is taking place
   # need to edit here to coref resolution of multiple documents in a single file
 
-  raw_sentences = sent_tokenize(text)
-  sentences = [word_tokenize(s) for s in raw_sentences]
+
+  # assumes sentences are seperated by ' <eos> ' in the story
+  raw_sentences = text.strip().split(' <eos> ')
+  # splitting as splitted in the AMR, this makes sure that the indexing for each work in coref resolution and 
+  # AMR sentences is same
+  sentences = [s.split() for s in raw_sentences if len(s) != 0]
   speakers = [["" for _ in sentence] for sentence in sentences]
   return {
     "doc_key": "nw",
@@ -72,7 +76,7 @@ if __name__ == "__main__":
 
     with open(file_name,'r') as f:
       temp = f.readlines()
-      documents = [doc for doc in temp if len(doc.strip()) != 0]
+      documents = [doc.strip() for doc in temp if len(doc.strip()) != 0]
 
     resovled_documents = []
     for doc in documents:
@@ -80,6 +84,5 @@ if __name__ == "__main__":
       output = make_predictions(text, model)
       resovled_documents.append([output["predicted_clusters"],util.flatten(output["sentences"])])
 
-    print resovled_documents
     with open('predicted_resolutions.txt','w') as f:
       pickle.dump(resovled_documents,f)
