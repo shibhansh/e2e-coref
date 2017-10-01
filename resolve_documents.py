@@ -44,13 +44,20 @@ def make_predictions(text, model):
   a, b, c, mention_starts, mention_ends, antecedents, antecedent_scores, head_scores = \
                                         session.run(model.predictions + [model.head_scores], feed_dict=feed_dict)
 
+  # print antecedents
+  # print antecedent_scores, len(antecedent_scores), len(antecedent_scores[0])
+
   predicted_antecedents = model.get_predicted_antecedents(antecedents, antecedent_scores)
+
+  # print predicted_antecedents, len(predicted_antecedents)
+
 
   example["predicted_clusters"], mention_to_predicted = \
                                 model.get_predicted_clusters(mention_starts, mention_ends, predicted_antecedents)
 
   example["top_spans"] = zip((int(i) for i in mention_starts), (int(i) for i in mention_ends))
   example["head_scores"] = head_scores.tolist()
+
   return example
 
 if __name__ == "__main__":
@@ -82,7 +89,9 @@ if __name__ == "__main__":
     for doc in documents:
       text = doc.strip()
       output = make_predictions(text, model)
-      resovled_documents.append([output["predicted_clusters"],util.flatten(output["sentences"])])
+      resovled_documents.append([output["predicted_clusters"],\
+                                util.flatten(output["sentences"]),\
+                                output["head_scores"]])
 
     with open('predicted_resolutions.txt','w') as f:
       pickle.dump(resovled_documents,f)
